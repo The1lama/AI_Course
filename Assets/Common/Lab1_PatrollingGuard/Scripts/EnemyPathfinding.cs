@@ -7,7 +7,6 @@ namespace EnemyStuff
 {
     public enum EnemyState
     {
-        Idle,
         Patrolling,
         Chasing,
         ReturningToPatrol
@@ -37,7 +36,14 @@ namespace EnemyStuff
 
         private NavMeshAgent agent;
         private Material material;
+        
+        [Header("DOT product")]
+        [SerializeField, Range(0f, 180f)] float fov = 90f;
+        [SerializeField] bool isInFOV;
 
+        [SerializeField, Header("Debug")] private bool isDebug = true;
+        
+        
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
@@ -84,9 +90,6 @@ namespace EnemyStuff
                 case EnemyState.ReturningToPatrol:
                     UpdateReturningToPatrol();
                     break;
-                case EnemyState.Idle:
-                    UpdateIdle();
-                    break;
                 
                 default:
                     Debug.LogError("Invalid state");
@@ -96,30 +99,17 @@ namespace EnemyStuff
             
         }
 
-        private void UpdateIdle()
+        private bool TargetInViewDot()
         {
-            TargetInView(0.9f);
-        }
-
-
-        private bool TargetInView(float degrees)
-        {
-            Vector3 forward = transform.TransformDirection(Vector3.forward);
-            // calculate a unit vector from the other object to this object
-            Vector3 toOther = Vector3.Normalize(target.position - transform.position);
-            // use the dot product sign to determine whether other is in front or behind 
-
-
-            if (Vector3.Dot(forward, toOther) > degrees)
-            {
-                return true;
-            }
-            return false;
+            var dotProd = Vector3.Dot(transform.TransformDirection(Vector3.forward), (target.position - transform.position).normalized);
+            var cosineThreshold = Mathf.Cos(fov * Mathf.Deg2Rad * 0.5f);
+            isInFOV = dotProd >= cosineThreshold;
+            return isInFOV;
         }
 
         private void UpdatePatrolling()
         {
-            if (distanceToTarget <= ChageRange && TargetInView(0.9f))
+            if (distanceToTarget <= ChageRange && TargetInViewDot())
             {
                 currentState = EnemyState.Chasing;
                 agent.ResetPath();
@@ -142,7 +132,7 @@ namespace EnemyStuff
         {
             agent.SetDestination(target.position);
             
-            if (distanceToTarget >= loseRange || !TargetInView(0.2f))
+            if (distanceToTarget >= loseRange || !TargetInViewDot())
             {
                 currentState = EnemyState.ReturningToPatrol;
                 material.color = Color.yellow;
@@ -152,7 +142,7 @@ namespace EnemyStuff
         private void UpdateReturningToPatrol()
         {
             // if the enemy sees the player and is in range
-            if (distanceToTarget <= ChageRange && TargetInView(0.2f))
+            if (distanceToTarget <= ChageRange && TargetInViewDot())
             {
                 currentState = EnemyState.Chasing;
                 agent.ResetPath();
@@ -184,19 +174,26 @@ namespace EnemyStuff
 
         private void OnDrawGizmos()
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, ChageRange);
+            if (isDebug)
+            {
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireSphere(transform.position, ChageRange);
             
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, loseRange);
+                Gizmos.color = Color.green;
+                Gizmos.DrawWireSphere(transform.position, loseRange);
 
-         //   Vector3 angleRight = new Vector3(transform.forward.x, transform.forward.y, transform.forward.z + 10);
-         //   Vector3 angleLeft = new Vector3(transform.forward.x, transform.forward.y, transform.forward.z -10);
-         //   
-         //   Gizmos.color = Color.blue;
-         //   Gizmos.DrawLine(transform.position, angleRight);
-         //   Gizmos.DrawLine(transform.position, angleLeft);
+                // draws ray to player and changes color depening if player is in FOV
+                Gizmos.color = isInFOV ? Color.green : Color.red;
+                Gizmos.DrawLine(transform.position, target.position);
 
+                Vector3 rightBoundary = Quaternion.Euler(0, fov * 0.5f, 0) * transform.TransformDirection(transform.forward);
+                Vector3 leftBoundary = Quaternion.Euler(0, -fov * 0.5f, 0) * transform.TransformDirection(transform.forward);
+
+                // gets shows wrong direction when facing -z dont care enough to fix right now.
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawLine(transform.position, transform.position + rightBoundary * ChageRange);
+                Gizmos.DrawLine(transform.position, transform.position + leftBoundary * ChageRange);
+            }
         }
     }
 }
