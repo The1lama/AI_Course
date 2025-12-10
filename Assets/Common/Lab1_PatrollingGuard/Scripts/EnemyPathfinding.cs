@@ -20,7 +20,7 @@ namespace EnemyStuff
         public Transform target;
 
         [Header("Chase settings")] 
-        public float ChageRange = 10f;
+        public float ChaseRange = 10f;
         public float loseRange = 13f;
         
         private EnemyState currentState = EnemyState.Patrolling;
@@ -109,7 +109,7 @@ namespace EnemyStuff
 
         private void UpdatePatrolling()
         {
-            if (distanceToTarget <= ChageRange && TargetInViewDot())
+            if (distanceToTarget <= ChaseRange && TargetInViewDot())
             {
                 currentState = EnemyState.Chasing;
                 agent.ResetPath();
@@ -142,7 +142,7 @@ namespace EnemyStuff
         private void UpdateReturningToPatrol()
         {
             // if the enemy sees the player and is in range
-            if (distanceToTarget <= ChageRange && TargetInViewDot())
+            if (distanceToTarget <= ChaseRange && TargetInViewDot())
             {
                 currentState = EnemyState.Chasing;
                 agent.ResetPath();
@@ -177,7 +177,7 @@ namespace EnemyStuff
             if (isDebug)
             {
                 Gizmos.color = Color.red;
-                Gizmos.DrawWireSphere(transform.position, ChageRange);
+                Gizmos.DrawWireSphere(transform.position, ChaseRange);
             
                 Gizmos.color = Color.green;
                 Gizmos.DrawWireSphere(transform.position, loseRange);
@@ -191,8 +191,8 @@ namespace EnemyStuff
 
                 // gets shows wrong direction when facing -z dont care enough to fix right now.
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(transform.position, transform.position + rightBoundary * ChageRange);
-                Gizmos.DrawLine(transform.position, transform.position + leftBoundary * ChageRange);
+                Gizmos.DrawLine(transform.position, transform.position + rightBoundary * ChaseRange);
+                Gizmos.DrawLine(transform.position, transform.position + leftBoundary * ChaseRange);
             }
         }
     }
