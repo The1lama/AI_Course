@@ -1,14 +1,16 @@
+
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Common.Lab2
+
+namespace Common.Lab2_AStar.Scripts
 {
     public class Pathfinder : MonoBehaviour
     {
         private GridManager gridManager;
-        
+        public GameObject agentMover;
         
         [Header("Start & Goal")]
         [SerializeField] private Transform start;
@@ -21,97 +23,120 @@ namespace Common.Lab2
         [SerializeField] private Material openMaterial;
         [SerializeField] private Material closedMaterial;
 
-        private List<Node> lastPath;
+        private List<Node> lastPath =  new();
+        private Node startNode;
+        private Node goalNode;
 
         private InputAction pathFindAction;
-        
-        private void OnEnable()
-        {
-            pathFindAction = new InputAction(
-                name: "Click",
-                type: InputActionType.Button,
-                binding: "<Keyboard>/space"
-                );
-            pathFindAction.performed += OnClickPerformed;
-            pathFindAction.Enable();
-        }
+        private InputAction resetAction;
 
-        private void OnDisable()
-        {
-            if (pathFindAction != null)
+        #region Start Functions
+
+            private void Start()
             {
-                pathFindAction.performed -= OnClickPerformed;
-                pathFindAction.Disable();
+                gridManager = GridManager.Instance;
             }
+            
+            private void OnEnable()
+            {
+               // pathFindAction = new InputAction(
+               //     name: "StartRoutine",
+               //     type: InputActionType.Button,
+               //     binding: "<Keyboard>/space"
+               //     );
+               // pathFindAction.performed += OnSpacePreformed;
+               // pathFindAction.Enable();
+
+                resetAction = new InputAction(
+                    name: "ResetRoutine",
+                    type: InputActionType.Button,
+                    binding: "<Keyboard>/r"
+                    );
+                resetAction.performed += ResetActionOnPerformed;
+                resetAction.Enable();
+
+            }
+
+
+            private void OnDisable()
+            {
+                if (pathFindAction != null)
+                {
+                    pathFindAction.performed -= OnSpacePreformed;
+                    pathFindAction.Disable();
+                }
+
+                if (resetAction != null)
+                {
+                    resetAction.performed -= ResetActionOnPerformed;
+                    resetAction.Disable();
+                }
+                
+            }
+
+
+            private void OnSpacePreformed(InputAction.CallbackContext obj)
+            {
+                RunPathFinding();
+            }
+            private void ResetActionOnPerformed(InputAction.CallbackContext obj)
+            {
+                gridManager.ResetGridValues(false);
+                gridManager.ResetGridVisuals();
+            }
+
+        #endregion
+
+        public void InitializePath(Vector3 startPos, Vector3 targetPos)
+        {
+            gridManager.ResetGridValues(true);
+            gridManager.ResetGridVisuals();
+            
+            lastPath.Clear();
+            startNode = gridManager.GetNodeFormWorldPosition(startPos);
+            goalNode = gridManager.GetNodeFormWorldPosition(targetPos);
+            
+            RunPathFinding();
         }
         
-        private void OnClickPerformed(InputAction.CallbackContext obj)
+        
+        private void RunPathFinding()
         {
-            Node startNode = gridManager.GetNodeFormWorldPosition(start.position);
-            Node goalNode = gridManager.GetNodeFormWorldPosition(goal.position);
+            gridManager.ResetGridValues(true);
 
             if (startNode == goalNode || startNode == null || goalNode == null)
             {
                 Debug.LogWarning("Invalid start or goal node");
                 return;
             }
-
-            ResetGridVisuals();
-            
             
             HashSet<Node> openListVisuals = new();
             HashSet<Node> closedListVisuals = new();
             
-            
             var lastPathList = FindPath(startNode, goalNode, openListVisuals, closedListVisuals);
 
-            foreach (var node in openListVisuals)
+            foreach (var node in openListVisuals.Where(node => node.walkable))
             {
-                if(node.walkable)
-                    SetTileMaterial(node, openMaterial);
+                SetTileMaterial(node, openMaterial);
             }
 
-            foreach (var node in closedListVisuals)
+            foreach (var node in closedListVisuals.Where(node => node.walkable))
             {
-                if (node.walkable)
-                    SetTileMaterial(node, closedMaterial);
+                SetTileMaterial(node, closedMaterial);
             }
 
             if (lastPathList != null)
             {
+                lastPathList.Reverse();
                 foreach (var node in lastPathList)
                     SetTileMaterial(node, pathMaterial);
+                
+                agentMover.GetComponent<AgentMover>().FollowPath(lastPathList);
             }
             else Debug.Log("No path found");
             
-            
             SetTileMaterial(startNode, startMaterial);
             SetTileMaterial(goalNode, goalMaterial);
-            
-            
-            
-        }
-
-        private void ResetGridVisuals()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        private void SetTileMaterial(Node node, Material material)
-        {
-            var curNode = gridManager.GetNodeFormWorldPosition(node.tile.transform.position);
-            
-        }
-
-        private void ResetGridValues()
-        {
-            foreach (var gridManagerNode in gridManager.nodes)
-            {
-                gridManagerNode.walkable = true;       
-                gridManagerNode.gCost = float.PositiveInfinity;
-                gridManagerNode.hCost = 0f;
-                gridManagerNode.parent = null;
-            }
         }
 
 
@@ -127,11 +152,11 @@ namespace Common.Lab2
 
             while (openSet.Count > 0)
             {
-                Node currentNode = GetLowestFCostNode(openSet);
+                Node currentNode = GetLowestFCostNode(openSet, closedSet);
 
                 if (currentNode == goalNode)
                 {
-                    return ReconstuctPath(startNode, goalNode);
+                    return ReconstructPath(startNode, goalNode);
                 }
                 
                 openSet.Remove(currentNode);
@@ -139,13 +164,13 @@ namespace Common.Lab2
                 
                 closedListVisuals?.Add(currentNode);    // Visuals
 
-                foreach (var neighbourNode in gridManager.GetNeighbours(currentNode).Where(w => w != null && w.walkable && !closedSet.Contains(w)))
+                foreach (var neighbourNode in gridManager.GetNeighbours(currentNode, false).Where(w => w != null && w.walkable && !closedSet.Contains(w)))
                 {
                     float tentativeG = currentNode.gCost + 1;
 
                     if (tentativeG < neighbourNode.gCost)
                     {
-                        neighbourNode.parent = currentNode;
+                        neighbourNode.Parent = currentNode;
                         neighbourNode.gCost = tentativeG;
                         neighbourNode.hCost = HeuristicCost(neighbourNode, goalNode);
 
@@ -160,11 +185,46 @@ namespace Common.Lab2
             return null;
         }
 
+        private Node GetLowestFCostNode(List<Node> openSet, HashSet<Node> closedSet)
+        {
+            var lowestNode = openSet[0];
+
+            foreach (var node in openSet)
+            {
+                if (node.fCost < lowestNode.fCost&& !closedSet.Contains(node))
+                    lowestNode = node;
+            }
+            return lowestNode;
+        }
+
+        private List<Node> ReconstructPath(Node startNode, Node goalNode)
+        {
+            List<Node> nodePathQueue = new();
+            
+            var currentNode = goalNode;
+
+            while (currentNode != startNode)
+            {
+                nodePathQueue.Add(currentNode);
+                currentNode = currentNode.Parent;
+            }
+            
+            return  nodePathQueue;
+        }
+
         private float HeuristicCost(Node node, Node goalNode)
         {
             int dx = Mathf.Abs(node.x - goalNode.x);
             int dy = Mathf.Abs(node.y - goalNode.y);
             return dx + dy;
+        }
+        
+        private void SetTileMaterial(Node node, Material material)
+        {
+            var curNode = gridManager.GetNodeFormWorldPosition(node.tile.transform.position);
+            var curRenderer = curNode.tile.GetComponent<Renderer>();
+            if (curRenderer != null && material != null)
+                curRenderer.material = material;
         }
     }
 }

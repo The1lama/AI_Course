@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Common.Lab2
+namespace Common.Lab2_AStar.Scripts
 {
     public class GridManager : MonoBehaviour
     {
@@ -40,6 +40,7 @@ namespace Common.Lab2
         {
             Instance = this;
             GenerateGrid();
+            GenerateWalls();
         }
 
         private void OnEnable()
@@ -108,12 +109,32 @@ namespace Common.Lab2
             }
         }
 
+        public void GenerateWalls()
+        {
+            for (int i = 0; i < 40; i++)
+            {
+                int x =  Random.Range(0, width);
+                int y =  Random.Range(0, height);
+                
+                var node = GetNode(x, y);
+                SetTileMaterial(node, wallMaterial);
+                node.walkable = false;
+                
+            } 
+
+        }
+
         #region Node stuff
         
         public Node GetNode(int x, int y)
         {
             if(x < 0 || x >= width || y < 0 || y >= height) return null;
             return nodes[x, y];
+        }
+        
+        public Vector3 NodeToWorldPosition(Node targetNode, Vector3 currentPosition)
+        {
+            return new Vector3(targetNode.x * cellSize, currentPosition.y,  targetNode.y * cellSize);
         }
 
         public Node GetNodeFormWorldPosition(Vector3 worldPos)
@@ -160,6 +181,32 @@ namespace Common.Lab2
                 renderer.material = material;
             }
         }
+
+        #region ResetValues
+
+        public void ResetGridVisuals()
+        {
+            foreach (var gridNode in nodes)
+            {
+                if(gridNode.walkable)
+                    SetTileMaterial(gridNode, walkableMaterial);
+            }
+        }
+
+        public void ResetGridValues(bool wantWalls = true)
+        {
+            foreach (var node in nodes)
+            {
+                if(!wantWalls)
+                    node.walkable = true;       
+                node.gCost = float.PositiveInfinity;
+                node.hCost = 0f;
+                node.Parent = null;
+            }
+        }
+
+        #endregion
+
 
     }
 }

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6384462468264154391}
   - component: {fileID: 2552377614501890041}
   - component: {fileID: 6687550724187660048}
-  - component: {fileID: 7594622463143453374}
+  - component: {fileID: 2077661477255566217}
   m_Layer: 0
   m_Name: Tile
   m_TagString: Untagged
@@ -29,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 0.2, z: 1}
+  m_LocalScale: {x: 0.9, y: 0.2, z: 0.9}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -87,7 +87,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &7594622463143453374
+--- !u!65 &2077661477255566217
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
