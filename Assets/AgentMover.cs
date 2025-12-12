@@ -19,8 +19,14 @@ namespace Common.Lab2_AStar.Scripts
         Vector3 targetPosition;
 
         private InputAction moveTowardAction;
+        private Rigidbody rb;
         private float time = 0f;
         private float timeLeft = 0.2f;
+
+        private void Awake()
+        {
+            rb = GetComponent<Rigidbody>();
+        }
 
         private void OnEnable()
         {
@@ -78,7 +84,7 @@ namespace Common.Lab2_AStar.Scripts
             targetNode =  currentPath[currentIndex];
             targetPosition = gridManager.GetNodeToWorldPosition(targetNode, transform.position);
 
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+            rb.MovePosition(targetPosition); //Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
             
             if(Vector3.Distance(transform.position, targetPosition) < 0.001f)
                 currentIndex++;

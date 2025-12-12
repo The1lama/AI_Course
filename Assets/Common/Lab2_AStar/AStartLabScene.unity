@@ -234,14 +234,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 850a9b9ab7bb6144fa5cde47e95a9031, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 10
-  height: 10
+  width: 50
+  height: 50
   cellSize: 1
+  amountOfWalls: 0.3
   tilePrefab: {fileID: 1989701652182317174, guid: 4375996cbd853ba439294a34a96986e6, type: 3}
   walkableMaterial: {fileID: 2100000, guid: 66d9f69f71ad8b54ba5202cdf5154f44, type: 2}
   wallMaterial: {fileID: 2100000, guid: bd0a881baff9e1545b9c773b8a296da3, type: 2}
-  startTileMaterial: {fileID: 2100000, guid: d9f1a8dc6680ef341b234766230a6987, type: 2}
-  goalTileMaterial: {fileID: 2100000, guid: 8d76b542f3e49f448a54a3ab6fc7ab81, type: 2}
 --- !u!4 &346465182
 Transform:
   m_ObjectHideFlags: 0
@@ -538,12 +537,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1258050000}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 4, y: 10, z: 4.5}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 19, z: 0}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1986141004}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &1258050004
 MonoBehaviour:
@@ -723,6 +722,7 @@ GameObject:
   - component: {fileID: 1986141002}
   - component: {fileID: 1986141001}
   - component: {fileID: 1986141000}
+  - component: {fileID: 1986141005}
   m_Layer: 0
   m_Name: Agent47
   m_TagString: Untagged
@@ -830,12 +830,40 @@ Transform:
   m_GameObject: {fileID: 1986140999}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalPosition: {x: 4.8, y: 0.5, z: 4}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
-  m_Children: []
+  m_Children:
+  - {fileID: 1258050003}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &1986141005
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1986140999}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 1
+  m_Constraints: 80
+  m_CollisionDetection: 0
 --- !u!1 &2076202627
 GameObject:
   m_ObjectHideFlags: 0
@@ -868,6 +896,7 @@ MonoBehaviour:
   agentMover: {fileID: 1986140999}
   start: {fileID: 698331031}
   goal: {fileID: 28018110}
+  isDiagonal: 0
   startMaterial: {fileID: 2100000, guid: d9f1a8dc6680ef341b234766230a6987, type: 2}
   goalMaterial: {fileID: 2100000, guid: 8d76b542f3e49f448a54a3ab6fc7ab81, type: 2}
   pathMaterial: {fileID: 2100000, guid: c489d32fdecbf134cb45f3f57974cc0d, type: 2}
@@ -894,7 +923,6 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1258050003}
   - {fileID: 1765098722}
   - {fileID: 768065892}
   - {fileID: 346465182}
