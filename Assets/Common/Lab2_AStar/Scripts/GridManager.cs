@@ -17,9 +17,7 @@ namespace Common.Lab2_AStar.Scripts
         [SerializeField] private GameObject tilePrefab;
         [SerializeField] private Material walkableMaterial;
         [SerializeField] private Material wallMaterial;
-        [SerializeField] private Material startTileMaterial;
-        [SerializeField] private Material goalTileMaterial;
-        
+
         [HideInInspector] public Node[,] nodes;
         private Dictionary<GameObject, Node> tileToNode = new();
         
@@ -31,6 +29,31 @@ namespace Common.Lab2_AStar.Scripts
         public float CellSize => cellSize;
 
         public static GridManager Instance { get; private set; }
+
+        private Vector2Int[] Direction => new Vector2Int[] {
+            new Vector2Int(0,1),       // North
+            new Vector2Int(1,0),       // East
+            new Vector2Int(0,-1),      // West
+            new Vector2Int(-1,0),      // South
+            
+            new Vector2Int(1,1),       // North East
+            new Vector2Int(1,-1),      // North West
+            new Vector2Int(-1,1),      // South East
+            new Vector2Int(-1,-1),     // South West
+        };
+
+        private enum Cardinal
+        {
+            North = 0, 
+            South = 1, 
+            East = 2, 
+            West = 3, 
+            
+            NorthWest = 4, 
+            NorthEast = 5, 
+            SouthEast = 6, 
+            SouthWest = 7
+        }
 
         #endregion
 
@@ -83,7 +106,7 @@ namespace Common.Lab2_AStar.Scripts
                 if (tileToNode.TryGetValue(clicked, out Node node))
                 {
                     bool newWalkable = !node.walkable;
-                    SetWalkable(node, newWalkable);
+                    SetWalkableNode(node, newWalkable);
                 }
             }
         }
@@ -109,76 +132,75 @@ namespace Common.Lab2_AStar.Scripts
             }
         }
 
-        public void GenerateWalls()
+        private void GenerateWalls()
         {
-            for (int i = 0; i < 40; i++)
+            for (int i = 0; i < (height*width)*0.4; i++)
             {
                 int x =  Random.Range(0, width);
                 int y =  Random.Range(0, height);
                 
-                var node = GetNode(x, y);
+                var node = TryGetNode(x, y);
                 SetTileMaterial(node, wallMaterial);
                 node.walkable = false;
                 
             } 
-
         }
 
         #region Node stuff
         
-        public Node GetNode(int x, int y)
+        private Node TryGetNode(int x, int y)
         {
             if(x < 0 || x >= width || y < 0 || y >= height) return null;
             return nodes[x, y];
         }
+        private Node TryGetNode(Vector2Int pos)
+        {
+            return TryGetNode(pos.x, pos.y);
+        }
         
-        public Vector3 NodeToWorldPosition(Node targetNode, Vector3 currentPosition)
+        public Vector3 GetNodeToWorldPosition(Node targetNode, Vector3 currentPosition)
         {
             return new Vector3(targetNode.x * cellSize, currentPosition.y,  targetNode.y * cellSize);
         }
 
-        public Node GetNodeFormWorldPosition(Vector3 worldPos)
+        public Node TryGetNodeFormWorldPosition(Vector3 worldPos)
         {
             int x = Mathf.RoundToInt(worldPos.x / cellSize);
             int y = Mathf.RoundToInt(worldPos.z / cellSize);
-            return GetNode(x, y);
+            return TryGetNode(x, y);
         }
 
-        public IEnumerable<Node> GetNeighbours(Node node, bool allowDiagonals = false)
+        public IEnumerable<Node> GetNeighbours(Node node, bool ifAllowDiagonals = false)
         {
-            int x = node.x, y = node.y;
-            
             // 4-neighbour
-            yield return GetNode(x + 1, y);
-            yield return GetNode(x - 1, y);
-            yield return GetNode(x, y + 1);
-            yield return GetNode(x, y - 1);
+            yield return TryGetNode(node.Position + Direction[(int)Cardinal.North]);
+            yield return TryGetNode(node.Position + Direction[(int)Cardinal.East]);
+            yield return TryGetNode(node.Position + Direction[(int)Cardinal.West]);
+            yield return TryGetNode(node.Position + Direction[(int)Cardinal.South]);
             
             // +4-neighbour
-            if (allowDiagonals)
-            {
-                yield return GetNode(x + 1, y + 1);
-                yield return GetNode(x - 1, y + 1);
-                yield return GetNode(x + 1, y - 1);
-                yield return GetNode(x - 1, y - 1);
-                
-            }
+            if (!ifAllowDiagonals) yield break;
+            
+            yield return TryGetNode(node.Position + Direction[(int)Cardinal.NorthEast]);
+            yield return TryGetNode(node.Position + Direction[(int)Cardinal.NorthWest]);
+            yield return TryGetNode(node.Position + Direction[(int)Cardinal.SouthEast]);
+            yield return TryGetNode(node.Position + Direction[(int)Cardinal.SouthWest]);
         }
         
         #endregion
         
-        private void SetWalkable(Node node, bool walkable)
+        private void SetWalkableNode(Node node, bool walkable)
         {
             node.walkable = walkable;
             SetTileMaterial(node, walkable ? walkableMaterial : wallMaterial);
         }
         
-        private void SetTileMaterial(Node node, Material material)
+        public void SetTileMaterial(Node node, Material material)
         {
-            var renderer = node.tile.GetComponent<Renderer>();
-            if (renderer != null && material != null)
+            var component = node.tile.GetComponent<Renderer>();
+            if (component != null && material != null)
             {
-                renderer.material = material;
+                component.material = material;
             }
         }
 

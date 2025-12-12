@@ -76,7 +76,7 @@ namespace Common.Lab2_AStar.Scripts
             if (currentPath == null || currentPath.Count == currentIndex) return;
             
             targetNode =  currentPath[currentIndex];
-            targetPosition = gridManager.NodeToWorldPosition(targetNode, transform.position);
+            targetPosition = gridManager.GetNodeToWorldPosition(targetNode, transform.position);
 
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
             

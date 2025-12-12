@@ -6,7 +6,7 @@ namespace Common.Lab2_AStar.Scripts
     {
         public int x;
         public int y;
-        public Vector3 Position => new Vector3(x, 0, y);
+        public Vector2Int Position => new Vector2Int(x, y);
         public bool walkable;
         public GameObject tile;
 
@@ -27,5 +27,10 @@ namespace Common.Lab2_AStar.Scripts
             hCost = 0f;
             Parent = null;
         }
+
+        public float GetHeuristicCost(Vector2Int target)
+        {
+            return Mathf.Abs(x - target.x) - Mathf.Abs(y - target.y);
+        }  
     }
 }
