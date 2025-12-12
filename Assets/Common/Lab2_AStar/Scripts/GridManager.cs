@@ -12,6 +12,7 @@ namespace Common.Lab2_AStar.Scripts
         [SerializeField] private int width  = 10;
         [SerializeField] private int height = 10;
         [SerializeField] private float cellSize = 1f;
+        [SerializeField, Range(0,1)] private float amountOfWalls = 0.4f;
 
         [Header("Prefabs & Materials")] 
         [SerializeField] private GameObject tilePrefab;
@@ -21,7 +22,6 @@ namespace Common.Lab2_AStar.Scripts
         [HideInInspector] public Node[,] nodes;
         private Dictionary<GameObject, Node> tileToNode = new();
         
-        // Input action for click
         private InputAction clickAction;
         
         public int Width => width;
@@ -61,7 +61,8 @@ namespace Common.Lab2_AStar.Scripts
         
         private void Awake()
         {
-            Instance = this;
+            if(Instance == null)
+                Instance = this;
             GenerateGrid();
             GenerateWalls();
         }
@@ -134,7 +135,7 @@ namespace Common.Lab2_AStar.Scripts
 
         private void GenerateWalls()
         {
-            for (int i = 0; i < (height*width)*0.4; i++)
+            for (int i = 0; i < (height*width)*amountOfWalls; i++)
             {
                 int x =  Random.Range(0, width);
                 int y =  Random.Range(0, height);
@@ -228,7 +229,5 @@ namespace Common.Lab2_AStar.Scripts
         }
 
         #endregion
-
-
     }
 }
