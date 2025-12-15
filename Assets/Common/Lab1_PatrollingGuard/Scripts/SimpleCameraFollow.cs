@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace GameAI.Common
+namespace Common.Lab1_PatrollingGuard.Scripts
 {
     public class SimpleCameraFollow : MonoBehaviour
     {

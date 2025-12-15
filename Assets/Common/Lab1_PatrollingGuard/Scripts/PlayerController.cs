@@ -1,10 +1,9 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-
-namespace PlayerController
+namespace Common.Lab1_PatrollingGuard.Scripts
 {
+    [RequireComponent(typeof(Rigidbody))]
     public class PlayerController : MonoBehaviour
     {
 
