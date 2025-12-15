@@ -1127,6 +1127,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1389502879}
     - target: {fileID: 2802899911221750403, guid: b9db40076ca038045bdb07c2b3c33522, type: 3}
+      propertyPath: cohesion
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2802899911221750403, guid: b9db40076ca038045bdb07c2b3c33522, type: 3}
       propertyPath: alignmentWeight
       value: 0.21
       objectReference: {fileID: 0}

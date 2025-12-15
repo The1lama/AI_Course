@@ -123,6 +123,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff45779ebf3a23c4280e62105c514642, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  steeringSO: {fileID: 11400000, guid: 17b4213b3846b4d4f8ed93c0a234140d, type: 2}
   maxSpeed: 5
   maxForce: 10
   slowingRadius: 3
@@ -130,9 +131,14 @@ MonoBehaviour:
   separationStrength: 5
   cohesionRadius: 5
   cohesionStrength: 0.17
+  alignmentRadius: 3
+  alignmentStrength: 2
   arriveWeight: 1
   separationWeight: 1
   cohesionWeight: 0.4
   alignmentWeight: 1
+  separation: 1
+  cohesion: 1
+  alignment: 1
   drawDebug: 1
   target: {fileID: 0}
