@@ -1,55 +1,111 @@
+using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Common.Lab4_BehaviorTrees.Scripts
 {
     public class GuardSensor : MonoBehaviour
     {
-        [Header("Eyes")] 
-        [SerializeField] private Transform eye;
-        [SerializeField] private GameObject target;
+        [Header("Target")]
+        public Transform _target;
         
-        [Header("Senses")]
+        [Header("View")]
         public float viewingDistance = 10f;
+        [SerializeField, Range(0f, 180f)] private float fov = 90f;
         public LayerMask obstructionLayerMask;
         
-        [Header("DOT product")]
-        [SerializeField, Range(0f, 180f)] private float fov = 90f;
-        [SerializeField] private bool isInFOV;
+        [SerializeField] private bool isInRangeAndSeen;
 
         [Header("Debug"), SerializeField] private bool isDebug = true;
 
-        [Header("Debugging shit")]
-        public bool isInRangeAndView = false;
+        private Transform cachedTarget;
 
-        private void Update()
+        private void Awake()
         {
-            isInFOV = TargetInViewDot(target.transform.position);
+            var go = GameObject.FindGameObjectWithTag("Player");
+            cachedTarget = go != null ? go.transform : null;
         }
-        
-        
-        public bool TargetInViewDot(Vector3 targetPos)
+
+
+        private bool IsLineOfSight()
         {
-            var dotProd = Vector3.Dot(eye.transform.TransformDirection(Vector3.forward), (targetPos - eye.transform.position).normalized);
+            if (!Physics.Linecast(transform.position, _target.position, obstructionLayerMask) && WithinDistanceToTarget(_target.position))
+            {
+                Debug.DrawRay(transform.position, _target.position - transform.position, Color.green);
+                return true;
+            }
+            Debug.DrawRay(transform.position, _target.position - transform.position, Color.red);
+            return false;
+        }
+
+        private bool WithinDistanceToTarget(Vector3 targetPosition)
+        {
+            return (targetPosition - transform.transform.position).magnitude < viewingDistance+0.5f;
+        }
+
+        public bool TrySeeTarget(out GameObject target, out Vector3 lastKnownPosition, out bool hasLineOfSight)
+        {
+            // Check flow
+            // 1. Distance
+            // 2. Cone Vision
+            // 3. Line of sight 
+            
+            
+            target = null;
+            lastKnownPosition = default;
+            hasLineOfSight = false;
+            
+            if(cachedTarget == null) return false;
+            
+            var toTarget = cachedTarget.position - transform.position;
+
+
+            if (toTarget.magnitude > viewingDistance + 0.5f)
+            {
+                Debug.Log("Not in distance view");
+                return false;
+            } // Gets the distance from guard to target
+
+
+            // Check the cone vision from guard to target if the targets in view
+            var dotProd = Vector3.Dot(transform.TransformDirection(Vector3.forward), (toTarget).normalized);
             var cosineThreshold = Mathf.Cos(fov * Mathf.Deg2Rad * 0.5f);
-            isInFOV = dotProd >= cosineThreshold;
-            return isInFOV;
+            isInRangeAndSeen = dotProd >= cosineThreshold;
+            if (!isInRangeAndSeen)
+            {
+                Debug.Log("Not in cone vision");
+                return false;
+            }
+
+            // Check LIne of sight from guard to target 
+            if (Physics.Linecast(transform.position, _target.position, obstructionLayerMask))
+            {
+                Debug.Log("FailedToSeeTarget");
+                return false;
+            }
+
+            Debug.Log("<Color=green>All is good</Color>");
+            target = cachedTarget.gameObject;
+            lastKnownPosition = cachedTarget.position;
+            hasLineOfSight = true;
+            return true;
         }
-        
         
         private void OnDrawGizmos()
         {
             if (isDebug)
             {
-                // draws ray to player and changes color depening if player is in FOV
-                Gizmos.color = isInFOV ? Color.green : Color.red;
-
-                Vector3 rightBoundary = Quaternion.Euler(0, fov * 0.5f, 0) * eye.transform.TransformDirection(eye.transform.forward);
-                Vector3 leftBoundary = Quaternion.Euler(0, -fov * 0.5f, 0) * eye.transform.TransformDirection(eye.transform.forward);
+                Gizmos.color = isInRangeAndSeen ? Color.green : Color.red;
+                Gizmos.DrawWireSphere(transform.position, viewingDistance);
+                
+                
+                Vector3 rightBoundary = Quaternion.Euler(0, fov * 0.5f, 0) * transform.TransformDirection(transform.forward);
+                Vector3 leftBoundary = Quaternion.Euler(0, -fov * 0.5f, 0) * transform.TransformDirection(transform.forward);
 
                 // gets shows wrong direction when facing -z dont care enough to fix right now.
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(eye.transform.position, eye.transform.position + rightBoundary * viewingDistance);
-                Gizmos.DrawLine(eye.transform.position, eye.transform.position + leftBoundary * viewingDistance);
+                Gizmos.DrawLine(transform.position, transform.position + rightBoundary * viewingDistance);
+                Gizmos.DrawLine(transform.position, transform.position + leftBoundary * viewingDistance);
             }
         }
     }
