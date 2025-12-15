@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 26456613}
   - component: {fileID: 26456612}
   - component: {fileID: 26456611}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Log
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -148,7 +148,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.33, y: 0.5, z: 11.12}
-  m_LocalScale: {x: 35.07, y: 1.58, z: 1.67}
+  m_LocalScale: {x: 35.07, y: 3.76, z: 1.67}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1264181675}
@@ -376,7 +376,7 @@ GameObject:
   - component: {fileID: 264791327}
   - component: {fileID: 264791326}
   - component: {fileID: 264791325}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Rock
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -393,7 +393,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 7.35, y: 0.5, z: 3.26}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 3.56, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1264181675}
@@ -484,7 +484,7 @@ GameObject:
   - component: {fileID: 279465935}
   - component: {fileID: 279465934}
   - component: {fileID: 279465933}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Rock (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -501,8 +501,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -2.42, y: 0.5, z: 5.31}
-  m_LocalScale: {x: 1.72, y: 1.72, z: 1.72}
-  m_ConstrainProportionsScale: 1
+  m_LocalScale: {x: 1.72, y: 3.79, z: 1.72}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1264181675}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1000,7 +1000,7 @@ Transform:
   m_GameObject: {fileID: 1505900229}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.12, y: 1, z: -20.18}
+  m_LocalPosition: {x: -0.12, y: 1, z: -8.99}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1018,7 +1018,7 @@ GameObject:
   - component: {fileID: 1866291508}
   - component: {fileID: 1866291507}
   - component: {fileID: 1866291506}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Rock (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1035,7 +1035,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -11.87, y: 0.5, z: -5.56}
-  m_LocalScale: {x: 1.09, y: 1.09, z: 1.09}
+  m_LocalScale: {x: 1.09, y: 3.23, z: 1.09}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1264181675}
@@ -1128,15 +1128,23 @@ PrefabInstance:
       objectReference: {fileID: 1389502879}
     - target: {fileID: 2802899911221750403, guid: b9db40076ca038045bdb07c2b3c33522, type: 3}
       propertyPath: cohesion
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2802899911221750403, guid: b9db40076ca038045bdb07c2b3c33522, type: 3}
-      propertyPath: alignmentWeight
-      value: 0.21
+      propertyPath: alignment
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2802899911221750403, guid: b9db40076ca038045bdb07c2b3c33522, type: 3}
-      propertyPath: alignmentStrength
-      value: 0.15
+      propertyPath: drawDebug
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2802899911221750403, guid: b9db40076ca038045bdb07c2b3c33522, type: 3}
+      propertyPath: separation
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2802899911221750403, guid: b9db40076ca038045bdb07c2b3c33522, type: 3}
+      propertyPath: avoidanceWeight
+      value: 2.51
       objectReference: {fileID: 0}
     - target: {fileID: 5614047731056726580, guid: b9db40076ca038045bdb07c2b3c33522, type: 3}
       propertyPath: m_Name

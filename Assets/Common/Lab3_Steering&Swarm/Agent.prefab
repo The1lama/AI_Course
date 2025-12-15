@@ -123,7 +123,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff45779ebf3a23c4280e62105c514642, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  steeringSO: {fileID: 11400000, guid: 17b4213b3846b4d4f8ed93c0a234140d, type: 2}
   maxSpeed: 5
   maxForce: 10
   slowingRadius: 3
@@ -133,12 +132,25 @@ MonoBehaviour:
   cohesionStrength: 0.17
   alignmentRadius: 3
   alignmentStrength: 2
+  obstacleAvoidanceRadius: 5
+  obstacleAvoidanceStrength: 10
+  lookAheadDistance: 3
+  obstacleLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  groundCheck: 3
+  hoverHeight: 0.5
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
   arriveWeight: 1
   separationWeight: 1
   cohesionWeight: 0.4
-  alignmentWeight: 1
+  alignmentWeight: 0.21
+  avoidanceWeight: 1
   separation: 1
   cohesion: 1
   alignment: 1
+  avoidance: 1
   drawDebug: 1
   target: {fileID: 0}

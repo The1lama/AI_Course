@@ -6,9 +6,6 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
     {
         #region Variables
 
-        [Header("Scriptable Object")]
-        public SteeringSO steeringSo;
-        
         [Header("Movement")] 
         public float maxSpeed = 5f;
         public float maxForce = 10f;
@@ -33,6 +30,10 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
         public float obstacleAvoidanceStrength = 10f;
         public float lookAheadDistance = 3f;
         public LayerMask obstacleLayerMask = 0;
+        private float[] obstacleAngles = new float[]
+        {
+            -90,-60,-30,0,30,60,90
+        };
 
         [Header("Ground Following")]
         public float groundCheck = 3f;
@@ -72,42 +73,20 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
             if(!allAgents.Contains(this))
                 allAgents.Add(this);
             target = GameObject.Find("Target").transform;
-            Initialize();
         }
 
         private void OnDisable()
         {
             allAgents.Remove(this);
         }
-
-        private void Initialize()
-        {
-            if (steeringSo == null) return;
-            
-            // Weight
-            arriveWeight = steeringSo.arriveWeight;
-            separationWeight = steeringSo.separationWeight;
-            cohesionWeight = steeringSo.cohesionWeight;
-            alignmentWeight = steeringSo.alignmentWeight;
-            avoidanceWeight = steeringSo.avoidanceWeight;
-            
-            // Use things
-            separation = steeringSo.separation;
-            cohesion = steeringSo.cohesion;
-            alignment = steeringSo.alignment;
-            avoidance = steeringSo.avoidance;
-            
-            // Debug
-            drawDebug = steeringSo.drawDebug;
-        }
-        
         
         private void Update()
         {
-            Initialize();
             
             Vector3 steering = Vector3.zero;
-            steering = ObstacleAvoidance() * avoidanceWeight;
+            
+            if(avoidance) steering += ObstacleAvoidance() * avoidanceWeight;
+
             
             // TODO in Part B/C
             if (target != null)
@@ -130,6 +109,7 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
                 
             }
             
+            
             // Limit Steering (Truncate)
             steering = Vector3.ClampMagnitude(steering, maxForce);
             
@@ -138,6 +118,7 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
             // Velocity Change = Acceleration * Time.
             _velocity += steering * Time.deltaTime;
             _velocity = Vector3.ClampMagnitude(_velocity, maxForce);
+            _velocity.y = 0;
             
             // Move Agent
             transform.position += _velocity * Time.deltaTime;
@@ -146,8 +127,6 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
             if (_velocity.sqrMagnitude > 0.0001f)
                 transform.forward = _velocity.normalized;
         }
-
-
 
         /// <summary>
         /// Advances to target without slowing down
@@ -191,7 +170,7 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
         /// <returns>Direction Force</returns>
         private Vector3 Separation(float radius, float strength)    // Avoid distance from group
         {
-            Vector3 force = Vector3.zero;
+            Vector3 seprarationForce = Vector3.zero;
             int neighbourCount = 0;
 
             foreach (var other in allAgents)
@@ -204,20 +183,20 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
 
                 if (otherMagnitude > 0f && otherMagnitude < radius)
                 {
-                    force += toMe.normalized / otherMagnitude;
+                    seprarationForce += toMe.normalized / otherMagnitude;
                     neighbourCount++;
                 }
             }
 
             if (neighbourCount > 0)
             {
-                force /= neighbourCount;
+                seprarationForce /= neighbourCount;
             
-                force = force.normalized * maxSpeed;
-                force = force - _velocity;
-                force *= strength;
+                seprarationForce = seprarationForce.normalized * maxSpeed;
+                seprarationForce = seprarationForce - _velocity;
+                seprarationForce *= strength;
             }
-            return force;
+            return seprarationForce;
         }
 
         private Vector3 Cohesion(float radius, float strength)       // tightness of the group 
@@ -284,7 +263,42 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
         
         private Vector3 ObstacleAvoidance()
         {
-            throw new System.NotImplementedException();
+            if(_velocity.sqrMagnitude < 0.001f) return Vector3.zero;
+            
+            Vector3 ahead = _velocity.normalized;
+            Vector3 avoidanceForce = Vector3.zero;
+
+            foreach (var obstacleAngle in obstacleAngles)
+            {
+                Vector3 rayDirection = Quaternion.Euler(0,obstacleAngle,0) * ahead;
+                Ray ray = new Ray(transform.position, rayDirection);
+                
+                if (Physics.Raycast(ray, out RaycastHit hit, lookAheadDistance, obstacleLayerMask))
+                {
+                    // get the proximity from obstacle
+                    var proxy = 1.0f - (hit.distance / lookAheadDistance);
+
+                    // Steer perpendicular to the hit normal (slide along the wall)
+                    var avoidanceDirection = Vector3.Cross(ahead, hit.normal).normalized;
+
+                    // Choose the direction thats more aligned with our current velocity
+                    if(Vector3.Dot(avoidanceDirection, _velocity) < 0)
+                        avoidanceDirection = -avoidanceDirection;
+
+                    // add to avoidianceForce 
+                    avoidanceForce += avoidanceDirection * proxy * obstacleAvoidanceStrength;
+                    
+                    if(drawDebug)
+                        Debug.DrawRay(ray.origin, rayDirection * hit.distance, Color.green);
+                    
+                    else if(drawDebug)
+                    {
+                        Debug.DrawRay(ray.origin, rayDirection * lookAheadDistance, Color.red);
+                    }
+                }
+            }
+            avoidanceForce.y = 0f;
+            return avoidanceForce;
         }
         
         
@@ -317,22 +331,6 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
             if (!drawDebug) return;
             Gizmos.color = Color.magenta;
             Gizmos.DrawLine(transform.position, transform.position + _velocity);
-
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(transform.position, slowingRadius);
-            
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, separationRadius);
-            
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireSphere(transform.position, cohesionRadius);
-            
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, alignmentRadius);
-            
-            
-            
-
 
         }
     }
