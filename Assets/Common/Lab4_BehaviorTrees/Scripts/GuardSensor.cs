@@ -8,6 +8,9 @@ namespace Common.Lab4_BehaviorTrees.Scripts
     {
         [Header("Target")]
         public Transform _target;
+
+        [Header("Attack Range")]
+        public float attackRange = 5;
         
         [Header("View")]
         public float viewingDistance = 10f;
@@ -43,7 +46,7 @@ namespace Common.Lab4_BehaviorTrees.Scripts
             return (targetPosition - transform.transform.position).magnitude < viewingDistance+0.5f;
         }
 
-        public bool TrySeeTarget(out GameObject target, out Vector3 lastKnownPosition, out bool hasLineOfSight)
+        public bool TrySeeTarget(out GameObject target, out Vector3 lastKnownPosition, out bool hasLineOfSight, out float toTargetDistance)
         {
             // Check flow
             // 1. Distance
@@ -54,40 +57,29 @@ namespace Common.Lab4_BehaviorTrees.Scripts
             target = null;
             lastKnownPosition = default;
             hasLineOfSight = false;
+            toTargetDistance = 99999f;
             
             if(cachedTarget == null) return false;
             
             var toTarget = cachedTarget.position - transform.position;
 
 
-            if (toTarget.magnitude > viewingDistance + 0.5f)
-            {
-                Debug.Log("Not in distance view");
-                return false;
-            } // Gets the distance from guard to target
+            if (toTarget.magnitude > viewingDistance + 0.5f) return false;      // Gets the distance from guard to target
 
 
             // Check the cone vision from guard to target if the targets in view
             var dotProd = Vector3.Dot(transform.TransformDirection(Vector3.forward), (toTarget).normalized);
             var cosineThreshold = Mathf.Cos(fov * Mathf.Deg2Rad * 0.5f);
             isInRangeAndSeen = dotProd >= cosineThreshold;
-            if (!isInRangeAndSeen)
-            {
-                Debug.Log("Not in cone vision");
-                return false;
-            }
+            if (!isInRangeAndSeen) return false;
 
             // Check LIne of sight from guard to target 
-            if (Physics.Linecast(transform.position, _target.position, obstructionLayerMask))
-            {
-                Debug.Log("FailedToSeeTarget");
-                return false;
-            }
+            if (Physics.Linecast(transform.position, _target.position, obstructionLayerMask)) return false;
 
-            Debug.Log("<Color=green>All is good</Color>");
             target = cachedTarget.gameObject;
             lastKnownPosition = cachedTarget.position;
             hasLineOfSight = true;
+            toTargetDistance = toTarget.magnitude;
             return true;
         }
         
@@ -106,6 +98,10 @@ namespace Common.Lab4_BehaviorTrees.Scripts
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawLine(transform.position, transform.position + rightBoundary * viewingDistance);
                 Gizmos.DrawLine(transform.position, transform.position + leftBoundary * viewingDistance);
+                
+                
+                Gizmos.color = Color.blue;
+                Gizmos.DrawWireSphere(transform.position, attackRange);
             }
         }
     }

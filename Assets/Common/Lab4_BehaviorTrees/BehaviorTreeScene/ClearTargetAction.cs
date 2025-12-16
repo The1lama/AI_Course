@@ -12,10 +12,11 @@ public partial class ClearTargetAction : Action
     [SerializeReference] public BlackboardVariable<GameObject> Target;
     [SerializeReference] public BlackboardVariable<bool> HasLineOfSight;
     [SerializeReference] public BlackboardVariable<float> TimeSinceLastSeen;
+    [SerializeReference] public BlackboardVariable<float> DistanceToTarget;
     
     protected override Status OnStart()
     {
-        return Status.Waiting;
+        return Status.Running;
     }
 
     protected override Status OnUpdate()
@@ -23,12 +24,11 @@ public partial class ClearTargetAction : Action
         if(Target == null) Target.Value = null;
         if(HasLineOfSight != null) HasLineOfSight.Value = false;
         if(TimeSinceLastSeen != null) TimeSinceLastSeen.Value = 9999f;
+        if(DistanceToTarget != null) DistanceToTarget.Value = 9999f;
+        
         
         return Status.Success;
     }
 
-    protected override void OnEnd()
-    {
-    }
 }
 
