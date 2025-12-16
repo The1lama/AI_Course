@@ -98,14 +98,11 @@ namespace Common.Lab3_Steering_Swarm.Scripts.AI
             
             if (allAgents.Count > 1)
             {
-                if(separation)
-                    steering += Separation(separationRadius, separationStrength) *  separationWeight;
+                if(separation) steering += Separation(separationRadius, separationStrength) *  separationWeight;
                 
-                if(cohesion)
-                    steering += Cohesion(cohesionRadius, cohesionStrength) * cohesionWeight;
+                if(cohesion) steering += Cohesion(cohesionRadius, cohesionStrength) * cohesionWeight;
                 
-                if(alignment)
-                    steering += Alignment(alignmentRadius, alignmentStrength) *  alignmentWeight;
+                if(alignment) steering += Alignment(alignmentRadius, alignmentStrength) *  alignmentWeight;
                 
             }
             
