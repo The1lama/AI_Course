@@ -5,7 +5,7 @@ namespace Common.Lab5_GOAP.Scripts.Actions
 {
     public class MoveToWeaponAction : GoapActionBase
     {
-        public float distanceTo = 0.7f;
+        public float distanceTo = 1.2f;
 
         public void Reset()
         {

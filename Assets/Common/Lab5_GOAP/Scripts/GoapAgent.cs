@@ -53,7 +53,11 @@ namespace Common.Lab5_GOAP.Scripts
             GoapState current = BuildCurrentState();
             ulong goalMask = SelectGoalMask(current);
 
-            if ((_plan == null || _plan.Count == 0) && Time.time >= _nextAllowedReplanTime) MakePlan(current, goalMask);
+            if ((_plan == null || _plan.Count == 0) && Time.time >= _nextAllowedReplanTime)
+            {
+                Debug.Log($"Makeing new goal: {goalMask}: Current {current.Bits}");
+                MakePlan(current, goalMask);
+            }
 
             if (_plan == null || _plan.Count == 0) return;
 
@@ -68,9 +72,6 @@ namespace Common.Lab5_GOAP.Scripts
                 
                 _currentAction.OnEnter(_ctx);
             }
-
-
-
 
             var status = _currentAction.Tick(_ctx);
 
@@ -92,7 +93,7 @@ namespace Common.Lab5_GOAP.Scripts
         private void ApplyActionEffectsToOwnedFacts(GoapActionBase a)
         {
             _ownedFactsBits &= ~a.delMask;
-            _ownedFactsBits |= a.delMask;
+            _ownedFactsBits |= a.addMask;
         }
 
         private void InvalidatePlan(bool throttle)
@@ -113,6 +114,12 @@ namespace Common.Lab5_GOAP.Scripts
                 _plan = null;
                 return;
             }
+
+            foreach (var re in res.Actions)
+            {
+                Debug.Log(re.actionName);
+            }
+            
             
             _plan = new Queue<GoapActionBase>(res.Actions);
 
@@ -127,7 +134,13 @@ namespace Common.Lab5_GOAP.Scripts
 
         private ulong SelectGoalMask(GoapState current)
         {
-            if (current.Has(GoapFact.SeesPlayer)) return GoapBits.Mask((GoapFact.PlayerTagged));
+            if (current.Has(GoapFact.SeesPlayer))
+            {
+               // Debug.Log("Setting GoalMask to PlayerTagged");
+                var ds = GoapBits.Mask((GoapFact.PlayerTagged));
+             //   Debug.Log(ds);
+                return ds;
+            }
             return GoapBits.Mask(GoapFact.PatrolStepDone);
         }
 

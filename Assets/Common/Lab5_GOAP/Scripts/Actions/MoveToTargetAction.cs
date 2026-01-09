@@ -5,7 +5,7 @@ namespace Common.Lab5_GOAP.Scripts.Actions
 {
     public class MoveToTargetAction : GoapActionBase
     {
-        public float distanceTo = 1.7f;
+        public float arriveDistance = 1.7f;
         
         public void Reset()
         {
@@ -32,8 +32,12 @@ namespace Common.Lab5_GOAP.Scripts.Actions
             ctx.Agent.SetDestination(ctx.Target.position);
 
             if (ctx.Agent.pathPending) return GoapStatus.Running;
-            
-            if(ctx.Agent.remainingDistance < distanceTo) return GoapStatus.Success;
+
+            if (ctx.Agent.remainingDistance <= arriveDistance)
+            {
+                Debug.Log("<Color=green>Arrived at Target!</Color>");
+                return GoapStatus.Success;
+            }
 
             return GoapStatus.Running;
         }

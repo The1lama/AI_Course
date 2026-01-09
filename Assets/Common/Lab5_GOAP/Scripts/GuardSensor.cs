@@ -31,12 +31,12 @@ namespace Common.Lab5_GOAP.Scripts
 
         private bool IsLineOfSight()
         {
-            if (!Physics.Linecast(transform.position, _target.position, obstructionLayerMask) && WithinDistanceToTarget(_target.position))
+            if (!Physics.Linecast(transform.position, cachedTarget.position, obstructionLayerMask) && WithinDistanceToTarget(cachedTarget.position))
             {
-                Debug.DrawRay(transform.position, _target.position - transform.position, Color.green);
+                Debug.DrawRay(transform.position, cachedTarget.position - transform.position, Color.green);
                 return true;
             }
-            Debug.DrawRay(transform.position, _target.position - transform.position, Color.red);
+            Debug.DrawRay(transform.position, cachedTarget.position - transform.position, Color.red);
             return false;
         }
 
@@ -60,16 +60,18 @@ namespace Common.Lab5_GOAP.Scripts
             // 3. Line of sight 
             
             
-            SeesPlayer = false;
             target = null;
             lastKnownPosition = default;
             hasLineOfSight = false;
             toTargetDistance = 99999f;
-            
-            if(cachedTarget == null) return false;
+
+            if (cachedTarget == null)
+            {
+                SeesPlayer = false;
+                return false;
+            }
             
             var toTarget = cachedTarget.position - transform.position;
-
 
             if (toTarget.magnitude > viewingDistance + 0.5f) return false;      // Gets the distance from guard to target
 
@@ -78,10 +80,18 @@ namespace Common.Lab5_GOAP.Scripts
             var dotProd = Vector3.Dot(transform.TransformDirection(Vector3.forward), (toTarget).normalized);
             var cosineThreshold = Mathf.Cos(fov * Mathf.Deg2Rad * 0.5f);
             isInRangeAndSeen = dotProd >= cosineThreshold;
-            if (!isInRangeAndSeen) return false;
+            if (!isInRangeAndSeen)
+            {
+                SeesPlayer = false;
+                return false;
+            }
 
             // Check LIne of sight from guard to target 
-            if (Physics.Linecast(transform.position, _target.position, obstructionLayerMask)) return false;
+            if (Physics.Linecast(transform.position, cachedTarget.position, obstructionLayerMask))
+            {
+                SeesPlayer = false;
+                return false;
+            }
 
             SeesPlayer = true;
             target = cachedTarget.gameObject;

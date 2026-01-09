@@ -6,13 +6,13 @@ namespace Common.Lab5_GOAP.Scripts
 {
     public enum GoapFact 
     {
-        SeesPlayer,
-        WeaponExists,
-        HasWeapon,
-        AtWeapon,
-        AtPlayer,
-        PatrolStepDone,
-        PlayerTagged
+        SeesPlayer = 0,
+        WeaponExists = 1,
+        HasWeapon = 2,
+        AtWeapon = 3,
+        AtPlayer = 4,
+        PatrolStepDone = 5,
+        PlayerTagged = 6
     }
 
 
