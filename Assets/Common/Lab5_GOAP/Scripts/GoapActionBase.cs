@@ -21,9 +21,9 @@ namespace Common.Lab5_GOAP.Scripts
         public string actionName = "Action";
         public float cost = 1f;
 
-        public ulong preMask;
-        public ulong addMask;
-        public ulong delMask;
+        public ulong preMask;   // Required facts
+        public ulong addMask;   // Facts to add on success
+        public ulong delMask;   // Facts to delete on success
         
         public virtual bool CheckProcedural(GoapContext ctx) => true;
 

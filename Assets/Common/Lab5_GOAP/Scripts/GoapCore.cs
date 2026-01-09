@@ -73,16 +73,17 @@ namespace Common.Lab5_GOAP.Scripts
                 for (int i = 1; i < open.Count; i++)
                 {
                     float c =  cost[open[i]];
-                    if(c < bestCost) {bestCost = c; bestIdx = i; }
+                    if (c < bestCost)
+                    {
+                        bestCost = c; 
+                        bestIdx = i;
+                    }
                 }
                 
                 var current =  open[bestIdx];
                 open.RemoveAt(bestIdx);
-                Debug.Log("Before Reconstuct");
                 if(current.Satisfies(goalMask)) return Reconstruct(current, came, cost[current]);
 
-                Debug.Log("after Reconstuct");
-                Debug.Log("");
                 foreach (var a in actions)
                 {
                     if (!a.CanApplyTo(current)) continue;
