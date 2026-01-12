@@ -5,12 +5,14 @@ namespace Common.Lab5_GOAP.Scripts.Actions
 {
     public class PickUpWeaponAction : GoapActionBase
     {
-        public void Reset()
+        void Reset()
         {
             actionName = "Pick Up Weapon";
+            bit = GoapBits.Mask(GoapFact.HasWeapon);
+
             cost = 1f;
             preMask = GoapBits.Mask(GoapFact.AtWeapon);
-            addMask = GoapBits.Mask(GoapFact.HasWeapon);
+            addMask = GoapBits.Mask(GoapFact.HasWeapon, GoapFact.hasLastPos);
             delMask = GoapBits.Mask(GoapFact.AtWeapon);
         }
 

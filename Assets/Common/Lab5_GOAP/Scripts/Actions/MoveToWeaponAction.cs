@@ -5,11 +5,12 @@ namespace Common.Lab5_GOAP.Scripts.Actions
 {
     public class MoveToWeaponAction : GoapActionBase
     {
-        public float distanceTo = 1.2f;
-
-        public void Reset()
+        public float arriveDistance = 0.7f;
+        void Reset()
         {
-            actionName = "Move to Weapon";
+            actionName = "Move To Weapon";
+            bit = GoapBits.Mask(GoapFact.AtWeapon);
+
             cost = 1f;
             preMask = GoapBits.Mask(GoapFact.WeaponExists);
             addMask = GoapBits.Mask(GoapFact.AtWeapon);
@@ -31,9 +32,8 @@ namespace Common.Lab5_GOAP.Scripts.Actions
             if(ctx.Weapon == null || !ctx.Weapon.gameObject.activeInHierarchy) return  GoapStatus.Failure;
             
             if(ctx.Agent.pathPending) return GoapStatus.Running;
-            
-            if(ctx.Agent.remainingDistance < distanceTo) return GoapStatus.Success;
-
+            if (ctx.Agent.remainingDistance <= arriveDistance)
+                return GoapStatus.Success;
             return GoapStatus.Running;
 
         }

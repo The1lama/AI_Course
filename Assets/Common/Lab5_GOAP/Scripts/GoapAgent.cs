@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using Common.Lab5_GOAP.Scripts.Actions;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,7 +10,7 @@ namespace Common.Lab5_GOAP.Scripts
     public class GoapAgent : MonoBehaviour
     {
         [Header("Scene refs")]
-        public GuardSensor sensor;
+        public GuardSensorV2 sensor;
         public Transform target;
         public Transform weaponPickup;
         public Transform[] patrolWaypoints;
@@ -29,11 +30,12 @@ namespace Common.Lab5_GOAP.Scripts
         private Queue<GoapActionBase> _plan;
         private GoapActionBase _currentAction;
 
-        private ulong _ownedFactsBits = 0;
+        internal ulong _ownedFactsBits = 0;
 
         private void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
+            _agent.stoppingDistance = 0.5f;
 
             _ctx = new GoapContext
             {
@@ -42,10 +44,12 @@ namespace Common.Lab5_GOAP.Scripts
                 Weapon = weaponPickup,
                 PatrolWaypoints = patrolWaypoints,
                 Sensors = sensor,
-                PartrolIndex = 0
+                PatrolIndex = 0,
+                GoapAgent = this,
             };
+            _allActions = new
+                List<GoapActionBase>(GetComponents<GoapActionBase>());
             
-            _allActions = new List<GoapActionBase>(GetComponents<GoapActionBase>());
         }
 
         private void Update()
@@ -55,10 +59,9 @@ namespace Common.Lab5_GOAP.Scripts
 
             if ((_plan == null || _plan.Count == 0) && Time.time >= _nextAllowedReplanTime)
             {
-                Debug.Log($"Makeing new goal: {goalMask}: Current {current.Bits}");
+                Debug.Log($"Makeing new goal: {goalMask}: Current {current.Bits}: Owned {_ownedFactsBits}");
                 MakePlan(current, goalMask);
             }
-
             if (_plan == null || _plan.Count == 0) return;
 
             if (_currentAction == null)
@@ -69,14 +72,10 @@ namespace Common.Lab5_GOAP.Scripts
                     InvalidatePlan(throttle: true);
                     return;
                 }
-                
                 _currentAction.OnEnter(_ctx);
             }
-
             var status = _currentAction.Tick(_ctx);
-
             if (status == GoapStatus.Running) return;
-
             if (status == GoapStatus.Success)
             {
                 ApplyActionEffectsToOwnedFacts(_currentAction);
@@ -90,27 +89,45 @@ namespace Common.Lab5_GOAP.Scripts
             InvalidatePlan(throttle: true);
         }
 
-        private void ApplyActionEffectsToOwnedFacts(GoapActionBase a)
+        private GoapState BuildCurrentState()
         {
-            _ownedFactsBits &= ~a.delMask;
-            _ownedFactsBits |= a.addMask;
-        }
+            // A place where to add sensors statements to bit
+            
+            
+            ulong bits = _ownedFactsBits;
 
-        private void InvalidatePlan(bool throttle)
+            bool hasWeapon = (bits & GoapBits.Mask(GoapFact.HasWeapon)) != 0;
+
+            if (sensor != null && sensor.SeesPlayer) bits |= GoapBits.Mask((GoapFact.SeesPlayer));
+            else bits &= ~GoapBits.Mask(GoapFact.SeesPlayer);
+
+            if (sensor != null && sensor.lastSeenTarget != Vector3.zero) bits |= GoapBits.Mask((GoapFact.hasLastPos));
+            else bits &= ~GoapBits.Mask(GoapFact.hasLastPos);
+            
+            bool pickupActive = weaponPickup != null && weaponPickup.gameObject.activeInHierarchy;
+            bool weaponAvailable = pickupActive && !hasWeapon;
+
+            if (weaponAvailable) bits |=
+            GoapBits.Mask(GoapFact.WeaponExists);
+                else bits &= ~GoapBits.Mask(GoapFact.WeaponExists);
+
+            return new GoapState(bits);
+        }
+        private ulong SelectGoalMask(GoapState current)
         {
-            _plan = null;
-            _currentAction = null;
-            
-            if(throttle) _nextAllowedReplanTime = Time.time + minSecondsBetweenReplans;
-            
+            // Simple rule set:
+            // - If player seen: goal is to tag the player
+            // - Else: goal is to complete one patrol step
+            if (current.Has(GoapFact.SeesPlayer))
+                return GoapBits.Mask(GoapFact.PlayerTagged);
+            return GoapBits.Mask(GoapFact.PatrolStepDone);
         }
-
         private void MakePlan(GoapState current, ulong goalMask)
         {
             var res = GoapPlanner.Plan(current, goalMask, _allActions);
             if (res == null)
             {
-                if (logPlans) Debug.LogWarning("GOAP: No plan found");
+                if (logPlans) Debug.LogWarning("GOAP: No plan found.");
                 _plan = null;
                 return;
             }
@@ -131,38 +148,21 @@ namespace Common.Lab5_GOAP.Scripts
                 Debug.Log(sb.ToString());
             }
         }
-
-        private ulong SelectGoalMask(GoapState current)
+        private void InvalidatePlan(bool throttle)
         {
-            if (current.Has(GoapFact.SeesPlayer))
-            {
-               // Debug.Log("Setting GoalMask to PlayerTagged");
-                var ds = GoapBits.Mask((GoapFact.PlayerTagged));
-             //   Debug.Log(ds);
-                return ds;
-            }
-            return GoapBits.Mask(GoapFact.PatrolStepDone);
+            _plan = null;
+            _currentAction = null;
+            
+            if(throttle)
+                _nextAllowedReplanTime = Time.time + minSecondsBetweenReplans;
+        }
+        private void ApplyActionEffectsToOwnedFacts(GoapActionBase a)
+        {
+            _ownedFactsBits &= ~a.delMask;
+            _ownedFactsBits |= a.addMask;
         }
 
-        private GoapState BuildCurrentState()
-        {
-            ulong bits = _ownedFactsBits;
-
-            bool hasWeapon = (bits & GoapBits.Mask(GoapFact.HasWeapon)) != 0;
-
-            if (sensor != null && sensor.SeesPlayer) bits |= GoapBits.Mask((GoapFact.SeesPlayer));
-            else bits &= ~GoapBits.Mask(GoapFact.SeesPlayer);
-
-            bool pickupActive = weaponPickup != null && weaponPickup.gameObject.activeInHierarchy;
-            bool weaponAvailable = pickupActive && !hasWeapon;
-
-            if (weaponAvailable) bits |= GoapBits.Mask(GoapFact.WeaponExists);
-            else bits &= ~GoapBits.Mask(GoapFact.WeaponExists);
-
-            return new GoapState(bits);
-
-        }
-
+        // debug:
         public string GetDebugString()
         {
             var s = BuildCurrentState();
@@ -184,7 +184,6 @@ namespace Common.Lab5_GOAP.Scripts
             }
             return sb.ToString(); 
         }
-
         private string GoalMaskToString(ulong goalMask)
         {
             var sb = new System.Text.StringBuilder();
@@ -199,9 +198,7 @@ namespace Common.Lab5_GOAP.Scripts
                     first = false;
                 }
             }
-
             return first ? "(none)" : sb.ToString();
         }
     }
-    
 }

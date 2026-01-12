@@ -3,19 +3,19 @@ using UnityEngine;
 
 namespace Common.Lab5_GOAP.Scripts.Actions
 {
-    public class MoveToTargetAction : GoapActionBase
+    public class MoveToLastSeenAction : GoapActionBase
     {
-        public float arriveDistance = 1.2f;
+        public float arriveDistance = 0.3f;
         
         void Reset()
         {
-            actionName = "Move To Target";
-            bit = GoapBits.Mask(GoapFact.AtPlayer);
-            cost = 1.5f;
+            actionName = "Move To Last Seen";
+            bit = GoapBits.Mask(GoapFact.hasLastPos);
+            cost = 0f;
 
-            preMask = GoapBits.Mask(GoapFact.SeesPlayer);
+            preMask = GoapBits.Mask(GoapFact.hasLastPos);
             addMask = GoapBits.Mask(GoapFact.AtPlayer);
-            delMask = 0;
+            delMask = GoapBits.Mask(GoapFact.hasLastPos);
         }
 
         public override bool CheckProcedural(GoapContext ctx)
@@ -28,18 +28,17 @@ namespace Common.Lab5_GOAP.Scripts.Actions
             
             if(ctx.Target == null) return GoapStatus.Failure;
             
-            if(ctx.Sensors != null && !ctx.Sensors.SeesPlayer) return GoapStatus.Failure;
-
-            ctx.Agent.SetDestination(ctx.Target.position);
-
+            if(ctx.Sensors.lastSeenTarget == Vector3.zero) return GoapStatus.Failure;
+            
+            ctx.Agent.SetDestination(ctx.Sensors.lastSeenTarget);
+            
             if (ctx.Agent.pathPending) return GoapStatus.Running;
-
+            
             if (ctx.Agent.remainingDistance <= arriveDistance)
             {
-                Debug.Log("<Color=green>Arrived at Target!</Color>");
                 return GoapStatus.Success;
             }
-
+            
             return GoapStatus.Running;
         }
 
@@ -47,6 +46,7 @@ namespace Common.Lab5_GOAP.Scripts.Actions
         {
             base.OnExit(ctx);
             
+            ctx.Sensors.lastSeenTarget = Vector3.zero;
             
         }
     }

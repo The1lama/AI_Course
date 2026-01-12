@@ -9,16 +9,20 @@ namespace Common.Lab5_GOAP.Scripts
     {
         public NavMeshAgent Agent;
         public Transform Target;
+        public Transform lastSeenTarget;
         public Transform Weapon;
         public Transform[] PatrolWaypoints;
-        public GuardSensor Sensors;
-        public int PartrolIndex;
+        public GuardSensorV2 Sensors;
+        public int PatrolIndex;
+        public GoapAgent GoapAgent;
     }
         
     public abstract class GoapActionBase : MonoBehaviour
     {
         [Header("GOAP (planner-visible)")]
         public string actionName = "Action";
+
+        [field: SerializeField] public ulong bit;
         public float cost = 1f;
 
         public ulong preMask;   // Required facts

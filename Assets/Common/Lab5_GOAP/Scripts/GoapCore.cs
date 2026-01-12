@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Common.Lab5_GOAP.Scripts
 {
@@ -12,7 +11,8 @@ namespace Common.Lab5_GOAP.Scripts
         AtWeapon = 3,
         AtPlayer = 4,
         PatrolStepDone = 5,
-        PlayerTagged = 6
+        PlayerTagged = 6, 
+        hasLastPos = 7,
     }
 
 
@@ -74,10 +74,7 @@ namespace Common.Lab5_GOAP.Scripts
                 {
                     float c =  cost[open[i]];
                     if (c < bestCost)
-                    {
-                        bestCost = c; 
-                        bestIdx = i;
-                    }
+                    { bestCost = c; bestIdx = i; }
                 }
                 
                 var current =  open[bestIdx];
@@ -91,7 +88,7 @@ namespace Common.Lab5_GOAP.Scripts
                     var next = a.ApplyTo(current);
                     float newCost = cost[current] + a.cost;
 
-                    if (!cost.TryGetValue(next, out var old) || newCost < old)
+                    if (!cost.TryGetValue(next, out float old) || newCost < old)
                     {
                         cost[next] = newCost;
                         came[next] = new CameFrom { Prev = current, Action = a, HasPrev = true };
